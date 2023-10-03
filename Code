@@ -1,0 +1,144 @@
+import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog
+
+# Create the main window
+window = tk.Tk()
+window.title("Pure Gas Solver")
+window.geometry("1000x1200")  # Set the window size
+window.configure(bg="#F5F5F5")  # Set a light background color
+
+# Modernize the theme
+style = ttk.Style()
+style.theme_use("clam")
+
+# Create a frame to hold the input fields
+frame = ttk.Frame(window)
+frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+# Create a canvas to contain the input fields
+canvas = tk.Canvas(frame)
+canvas.pack(side="left", fill="both", expand=True)
+
+# Create a ScrolledFrame to contain the input fields
+scrolled_frame = ttk.Frame(canvas)
+
+# Create a vertical scrollbar for the canvas
+scrollbar = ttk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+scrollbar.pack(side="right", fill="y")
+canvas.config(yscrollcommand=scrollbar.set)
+
+# Add the scrolled frame to the canvas
+canvas.create_window((0, 0), window=scrolled_frame, anchor="nw")
+
+# Function to create input field labels and entry fields
+def create_input_field(label_text, entry_text, frame):
+    input_frame = ttk.Frame(frame)
+    input_frame.pack(fill="x", padx=10, pady=5)
+
+    label = ttk.Label(input_frame, text=label_text, font=("Helvetica", 12, "bold"))
+    label.pack(side="left", padx=10, pady=5)
+
+    entry = ttk.Entry(input_frame, font=("Helvetica", 12), width=20)
+    entry.insert(0, entry_text)
+    entry.pack(side="left", padx=10, pady=5, expand=True, fill="x")
+    return entry
+
+# Example input variables (replace with your own)
+input_variables = [
+    ("Dimensions of the Domain (LxHxW)", "0.05 0.30 0.048"),
+    ("Grid Dimension of the Domain (Nx x Ny x Nz)", "75 150 1"),
+    ("Grid Type (Uniform{0}/Nonuniform{1})", "0"),
+    ("Wall velocity at the top surface", "0.00 0.00"),
+    ("Wall velocity at the bottom surface", "0.00 0.00"),
+    ("Wall velocity at the left surface", "0.00 0.00"),
+    ("Wall velocity at the right surface", "0.00 0.00"),
+    ("Domain Voidage", "0.40"),
+    ("Raceway Voidage", "0.85"),
+    ("Condition of gas flow (Increasing or Decreasing)", "-1"),
+    ("Gas flow rate (in lpm)", "150.00"),
+    ("Density of the gas", "1.178"),
+    ("Viscosity of the gas", "1.983e-5"),
+    ("Correlation (0), Isostress(1), DEM(2) or Tracing(3) for voidage and raceway", "2"),
+    ("Number of Particle Types", "1"),
+    ("Number of bed particles", "1000"),
+    ("Minimum point for the insertion box", "0.00 0.20"),
+    ("Maximum point for the insertion box", "0.05 0.25"),
+    ("Particle Insertion Rate", "100"),
+    ("Minimum point for the deletion box", "0.00 0.00"),
+    ("Maximum point for the deletion box", "0.10 0.05"),
+    ("Particle Removal Rate", "0"),
+    ("Size of the particles", "5.00e-3"),
+    ("Sphericity", "1.0"),
+    ("Density of the Packing material", "2500.0"),
+    ("Co-efficient of friction", "0.3"),
+    ("Co-efficient of restitution", "0.8"),
+    ("Stiffness co-efficient", "1000"),
+    ("Time for packing", "2.0"),
+    ("Liquid flow rate through the rotameter", "0.00"),
+    ("Density of the liquid", "1000.0"),
+    ("Viscosity of the liquid", "0.001"),
+    ("Contact angle of the liquid with solids", "80"),
+    ("Surface tension of the liquid", "0.0723"),
+    ("Fines mass flow rate (in kg/m2 s)", "0.40"),
+    ("Size of fines particles", "116e-6"),
+    ("Sphericity", "1.0"),
+    ("Density of the fines fines", "2500.0"),
+    ("Viscosity of the fines", "0.8"),
+    ("Number of tuyeres", "1"),
+    ("Height of Tuyere from bottom", "5.0e-2"),
+    ("Diameter of Tuyere opening", "5.00e-3"),
+    ("Protrusion depth of the Tuyere", "1.00e-2"),
+    ("Angle of the Tuyere", "0.00"),
+    ("Number of liquid rotameters", "0")
+]
+
+# Create input fields
+entry_fields = []
+for label_text, entry_text in input_variables:
+    if label_text == "Grid Type (Uniform{0}/Nonuniform{1})":
+        # Create a dropdown menu for the Grid Type input
+        grid_type_var = tk.StringVar(value=entry_text)
+        grid_type_label = ttk.Label(scrolled_frame, text=label_text, font=("Helvetica", 12, "bold"))
+        grid_type_label.pack(fill="x", padx=10, pady=5)
+
+        grid_type_combobox = ttk.Combobox(
+            scrolled_frame,
+            textvariable=grid_type_var,
+            values=["0", "1"],
+            font=("Helvetica", 12),
+            state="readonly"
+        )
+        grid_type_combobox.pack(fill="x", padx=10, pady=5)
+        entry_fields.append(grid_type_var)
+    else:
+        entry = create_input_field(label_text, entry_text, scrolled_frame)
+        entry_fields.append(entry)
+# Configure the canvas to expand with the scrolled frame
+scrolled_frame.update_idletasks()
+canvas.config(scrollregion=canvas.bbox("all"))
+
+# Function to handle the submit button click event
+def submit():
+    # Get the values from the entry fields
+    values = [entry.get() for entry in entry_fields]
+
+    # Save the values to a file
+    file_path = filedialog.asksaveasfilename(defaultextension=".txt")
+    if file_path:
+        with open(file_path, "w") as file:
+            for value in values:
+                file.write(value + "\n")
+
+# Create a frame for the submit button
+button_frame = ttk.Frame(window)
+button_frame.pack(pady=20)
+
+
+
+# Create the submit button with a modern style
+style.configure("SubmitButton.TButton", font=("Helvetica", 12), foreground="#ffffff", background="#007BFF")
+submit_button = ttk.Button(button_frame, text="Submit", command=submit, style="SubmitButton.TButton")
+submit_button.pack(pady=10)
+
+window.mainloop()
